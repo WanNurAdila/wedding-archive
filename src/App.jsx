@@ -31,6 +31,19 @@ function App() {
     }
   }, [])
 
+  async function handleRefresh() {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await fetchPhotos()
+      setPhotos(data)
+    } catch {
+      setError('Could not load photos. Please try again later.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function handleUpload(blob, fileName) {
     setUploading(true)
     try {
@@ -68,21 +81,30 @@ function App() {
         <Gallery photos={photos} loading={loading} error={error} />
       </main>
 
-      <div className="action-bar">
-        <button type="button" className="action-button" onClick={() => setShowCamera(true)}>
-          Take Photo
-        </button>
-        <button type="button" className="action-button secondary" onClick={() => fileInputRef.current?.click()}>
-          Upload
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          hidden
-          onChange={handleFileChange}
-        />
+      <div className="bottom-bar">
+        <div className="action-bar">
+          <button type="button" className="action-button" onClick={() => setShowCamera(true)}>
+            Take Photo
+          </button>
+          <button type="button" className="action-button secondary" onClick={() => fileInputRef.current?.click()}>
+            Upload
+          </button>
+          <button type="button" className="action-button secondary" onClick={handleRefresh} disabled={loading}>
+            Refresh
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            hidden
+            onChange={handleFileChange}
+          />
+        </div>
+
+        <footer className="site-footer">
+          <p>© WAN ADILA 2026</p>
+        </footer>
       </div>
 
       {showCamera && (

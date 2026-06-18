@@ -10,7 +10,7 @@
 
 main {
   flex: 1;
-  padding: 16px 20px 120px;
+  padding: 16px 20px 140px;
 }
 
 .gallery-status {
@@ -46,28 +46,44 @@ main {
   }
 }
 
-.action-bar {
+.bottom-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
+  background: linear-gradient(to top, var(--bg) 75%, transparent);
+}
+
+.action-bar {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 12px;
-  padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, var(--bg) 60%, transparent);
+  gap: 10px;
+  padding: 16px 20px 8px;
+}
+
+.site-footer {
+  text-align: center;
+  padding: 0 20px calc(12px + env(safe-area-inset-bottom));
+  color: var(--text);
+  font-size: 13px;
 }
 
 .action-button {
   font-size: 16px;
   font-weight: 600;
-  padding: 14px 28px;
+  padding: 14px 22px;
   border-radius: 999px;
   border: none;
   color: #fff;
   background: var(--accent);
   box-shadow: var(--shadow);
   cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
 
   &.secondary {
     background: #fff;
