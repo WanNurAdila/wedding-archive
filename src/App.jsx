@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Camera from './components/Camera'
 import Gallery from './components/Gallery'
-import { fetchPhotos, uploadPhoto } from './api'
+import { fetchPhotos, resizeImage, uploadPhoto } from './api'
 import './App.css'
 
 function App() {
@@ -47,7 +47,12 @@ function App() {
   async function handleUpload(blob, fileName) {
     setUploading(true)
     try {
-      const photo = await uploadPhoto(blob, fileName)
+      const resized = await resizeImage(blob)
+      const finalName =
+        resized.type === 'image/jpeg' && resized !== blob
+          ? fileName.replace(/\.\w+$/, '') + '.jpg'
+          : fileName
+      const photo = await uploadPhoto(resized, finalName)
       setPhotos((prev) => [photo, ...prev])
     } catch {
       setError('Could not upload photo. Please try again.')
