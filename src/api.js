@@ -44,3 +44,21 @@ export function photoViewUrl(id) {
 export function photoDownloadUrl(id) {
   return `/api/photos/${id}?download=1`
 }
+
+export async function fetchWishes() {
+  const res = await fetch('/api/wishes')
+  if (!res.ok) throw new Error('Failed to load wishes')
+  const { wishes } = await res.json()
+  return wishes
+}
+
+export async function postWish(name, msg) {
+  const res = await fetch('/api/wishes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, msg }),
+  })
+  if (!res.ok) throw new Error('Failed to send wish')
+  const { wish } = await res.json()
+  return wish
+}

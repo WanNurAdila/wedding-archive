@@ -10,11 +10,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/favicon-32.png'],
       manifest: {
-        name: 'Wedding Archive',
-        short_name: 'Wedding Archive',
-        description: 'Capture and share photos from the wedding',
-        theme_color: '#7e14ff',
-        background_color: '#ffffff',
+        name: 'Alia & Ariff — Wedding',
+        short_name: 'Alia & Ariff',
+        description: 'Wedding details, wishes, and gallery for Alia & Ariff.',
+        theme_color: '#fbf6ec',
+        background_color: '#fbf6ec',
         display: 'standalone',
         start_url: '/',
         icons: [
@@ -52,6 +52,14 @@ export default defineConfig({
             options: {
               cacheName: 'wedding-photos',
               expiration: { maxEntries: 200 },
+            },
+          },
+          {
+            urlPattern: /\/api\/wishes$/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'wedding-wishes',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 },
             },
           },
         ],

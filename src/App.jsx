@@ -1,16 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 import Camera from './components/Camera'
 import Gallery from './components/Gallery'
+import Details from './components/Details'
+import Wishes from './components/Wishes'
+import BottomNav from './components/BottomNav'
+import Toast from './components/Toast'
 import { fetchPhotos, resizeImage, uploadPhoto } from './api'
 import './App.css'
 
 function App() {
+  const [page, setPage] = useState('details')
   const [photos, setPhotos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showCamera, setShowCamera] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef(null)
+  const [toast, setToast] = useState('')
+  const toastTimer = useRef(null)
 
   useEffect(() => {
     let ignore = false
@@ -31,12 +37,21 @@ function App() {
     }
   }, [])
 
+  useEffect(() => () => clearTimeout(toastTimer.current), [])
+
+  function flash(message) {
+    setToast(message)
+    clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(''), 2200)
+  }
+
   async function handleRefresh() {
     setLoading(true)
     setError(null)
     try {
       const data = await fetchPhotos()
       setPhotos(data)
+      flash('Gallery refreshed')
     } catch {
       setError('Could not load photos. Please try again later.')
     } finally {
@@ -44,18 +59,26 @@ function App() {
     }
   }
 
-  async function handleUpload(blob, fileName) {
+  async function handleUploadOne(blob, fileName) {
+    const resized = await resizeImage(blob)
+    const finalName =
+      resized.type === 'image/jpeg' && resized !== blob
+        ? fileName.replace(/\.\w+$/, '') + '.jpg'
+        : fileName
+    const photo = await uploadPhoto(resized, finalName)
+    setPhotos((prev) => [photo, ...prev])
+  }
+
+  async function handleUpload(files) {
     setUploading(true)
     try {
-      const resized = await resizeImage(blob)
-      const finalName =
-        resized.type === 'image/jpeg' && resized !== blob
-          ? fileName.replace(/\.\w+$/, '') + '.jpg'
-          : fileName
-      const photo = await uploadPhoto(resized, finalName)
-      setPhotos((prev) => [photo, ...prev])
+      for (const file of files) {
+        await handleUploadOne(file, file.name)
+      }
+      flash(files.length > 1 ? `${files.length} photos added` : '1 photo added')
     } catch {
       setError('Could not upload photo. Please try again.')
+      flash('Could not upload photo')
     } finally {
       setUploading(false)
     }
@@ -63,59 +86,46 @@ function App() {
 
   async function handleCameraCapture(blob) {
     setShowCamera(false)
-    await handleUpload(blob, `photo-${Date.now()}.jpg`)
-  }
-
-  async function handleFileChange(event) {
-    const files = Array.from(event.target.files ?? [])
-    event.target.value = ''
-    for (const file of files) {
-      await handleUpload(file, file.name)
+    setUploading(true)
+    try {
+      await handleUploadOne(blob, `photo-${Date.now()}.jpg`)
+      flash('1 photo added')
+    } catch {
+      setError('Could not upload photo. Please try again.')
+      flash('Could not upload photo')
+    } finally {
+      setUploading(false)
     }
   }
 
   return (
-    <>
-      <header className="site-header">
-        <h1>Wedding Archive</h1>
-        <p>Capture and share your favourite moments from the day</p>
-      </header>
-
-      <main>
-        {uploading && <p className="gallery-status">Uploading photo…</p>}
-        <Gallery photos={photos} loading={loading} error={error} />
-      </main>
-
-      <div className="bottom-bar">
-        <div className="action-bar">
-          <button type="button" className="action-button" onClick={() => setShowCamera(true)}>
-            Take Photo
-          </button>
-          <button type="button" className="action-button secondary" onClick={() => fileInputRef.current?.click()}>
-            Upload
-          </button>
-          <button type="button" className="action-button secondary" onClick={handleRefresh} disabled={loading}>
-            Refresh
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            hidden
-            onChange={handleFileChange}
-          />
+    <div className="phone">
+      <div className="phone-inner">
+        <div className="scroll-area">
+          {page === 'details' && <Details />}
+          {page === 'wishes' && <Wishes onToast={flash} />}
+          {page === 'gallery' && (
+            <Gallery
+              photos={photos}
+              loading={loading}
+              error={error}
+              uploading={uploading}
+              onUpload={handleUpload}
+              onRefresh={handleRefresh}
+              onOpenCamera={() => setShowCamera(true)}
+            />
+          )}
         </div>
 
-        <footer className="site-footer">
-          <p>© WAN ADILA 2026</p>
-        </footer>
+        <BottomNav page={page} onChange={setPage} />
+
+        <Toast message={toast} />
       </div>
 
       {showCamera && (
         <Camera onCapture={handleCameraCapture} onClose={() => setShowCamera(false)} />
       )}
-    </>
+    </div>
   )
 }
 
