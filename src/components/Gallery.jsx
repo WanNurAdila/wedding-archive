@@ -62,6 +62,7 @@ function DownloadIcon() {
 export default function Gallery({ photos, loading, error, uploading, onUpload, onRefresh, onOpenCamera }) {
   const fileInputRef = useRef(null)
   const [lightboxIndex, setLightboxIndex] = useState(null)
+  const [downloading, setDownloading] = useState(false)
   const active = lightboxIndex !== null ? photos[lightboxIndex] : null
 
   useEffect(() => {
@@ -84,6 +85,35 @@ export default function Gallery({ photos, loading, error, uploading, onUpload, o
     const files = Array.from(e.target.files ?? [])
     e.target.value = ''
     if (files.length) onUpload(files)
+  }
+
+  async function handleDownload(photo) {
+    setDownloading(true)
+    try {
+      const res = await fetch(photoDownloadUrl(photo.id))
+      const blob = await res.blob()
+      const file = new File([blob], photo.name, { type: blob.type || 'image/jpeg' })
+
+      // On iOS/Android, the native share sheet's "Save Image"/"Save to Photos"
+      // option is the only way a web page can save into the photo gallery.
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file] })
+        return
+      }
+
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = photo.name
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      if (err?.name !== 'AbortError') window.open(photoDownloadUrl(photo.id), '_blank')
+    } finally {
+      setDownloading(false)
+    }
   }
 
   return (
@@ -159,10 +189,15 @@ export default function Gallery({ photos, loading, error, uploading, onUpload, o
             <button type="button" className="lightbox-icon-btn" onClick={() => nav(-1)}>
               <ChevronIcon dir="prev" />
             </button>
-            <a href={photoDownloadUrl(active.id)} download={active.name} className="lightbox-download">
+            <button
+              type="button"
+              className="lightbox-download"
+              onClick={() => handleDownload(active)}
+              disabled={downloading}
+            >
               <DownloadIcon />
-              Download
-            </a>
+              {downloading ? 'Saving…' : 'Download'}
+            </button>
             <button type="button" className="lightbox-icon-btn" onClick={() => nav(1)}>
               <ChevronIcon dir="next" />
             </button>

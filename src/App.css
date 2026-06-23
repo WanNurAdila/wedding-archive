@@ -535,7 +535,7 @@
 /* ---------- lightbox ---------- */
 
 .lightbox {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: rgba(40, 38, 33, 0.94);
   display: flex;
@@ -601,7 +601,7 @@
   align-items: center;
   justify-content: center;
   gap: 14px;
-  padding: 18px 0 28px;
+  padding: 18px 0 max(28px, calc(env(safe-area-inset-bottom) + 14px));
 }
 
 .lightbox-bottom .lightbox-icon-btn {
@@ -616,11 +616,18 @@
   text-decoration: none;
   background: var(--app-bg);
   color: var(--ink);
+  border: none;
   border-radius: 26px;
   padding: 13px 26px;
   font-family: var(--serif);
   font-size: 15px;
   letter-spacing: 0.4px;
+  cursor: pointer;
+}
+
+.lightbox-download:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 /* ---------- camera overlay ---------- */
