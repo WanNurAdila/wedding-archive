@@ -62,3 +62,12 @@ export async function postWish(name, msg) {
   const { wish } = await res.json()
   return wish
 }
+
+export async function postEmail(email) {
+  const res = await fetch('/api/emails', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  if (!res.ok) throw new Error('Failed to send email')
+}

@@ -113,6 +113,7 @@ function App() {
               onUpload={handleUpload}
               onRefresh={handleRefresh}
               onOpenCamera={() => setShowCamera(true)}
+              onToast={flash}
             />
           )}
         </div>

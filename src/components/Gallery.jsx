@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { photoDownloadUrl, photoViewUrl } from '../api'
+import { photoDownloadUrl, photoViewUrl, postEmail } from '../api'
 import { FooterMark } from './decor'
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function CameraIcon() {
   return (
@@ -59,10 +61,48 @@ function DownloadIcon() {
   )
 }
 
-export default function Gallery({ photos, loading, error, uploading, onUpload, onRefresh, onOpenCamera }) {
+function MailIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M4 7l8 6 8-6" />
+    </svg>
+  )
+}
+
+function SendIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+      <path d="M22 2L11 13" />
+      <path d="M22 2l-7 20-4-9-9-4 20-7z" />
+    </svg>
+  )
+}
+
+function ClockIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3.5 2" />
+    </svg>
+  )
+}
+
+export default function Gallery({
+  photos,
+  loading,
+  error,
+  uploading,
+  onUpload,
+  onRefresh,
+  onOpenCamera,
+  onToast,
+}) {
   const fileInputRef = useRef(null)
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const [downloading, setDownloading] = useState(false)
+  const [draftEmail, setDraftEmail] = useState('')
+  const [sendingEmail, setSendingEmail] = useState(false)
   const active = lightboxIndex !== null ? photos[lightboxIndex] : null
 
   useEffect(() => {
@@ -85,6 +125,24 @@ export default function Gallery({ photos, loading, error, uploading, onUpload, o
     const files = Array.from(e.target.files ?? [])
     e.target.value = ''
     if (files.length) onUpload(files)
+  }
+
+  async function handleEmailSubmit() {
+    const email = draftEmail.trim()
+    if (!EMAIL_RE.test(email)) {
+      onToast?.('Please enter a valid email')
+      return
+    }
+    setSendingEmail(true)
+    try {
+      await postEmail(email)
+      setDraftEmail('')
+      onToast?.('Thank you — we’ll share the album soon')
+    } catch {
+      onToast?.('Could not save your email. Please try again.')
+    } finally {
+      setSendingEmail(false)
+    }
   }
 
   async function handleDownload(photo) {
@@ -142,6 +200,31 @@ export default function Gallery({ photos, loading, error, uploading, onUpload, o
         hidden
         onChange={handleFileChange}
       />
+
+      <div className="gallery-email-card">
+        <div className="gallery-email-card-head">
+          <MailIcon />
+          <h3>Want every photo?</h3>
+        </div>
+        <p>Leave your email and we&rsquo;ll share the full Google Drive album with all the high-resolution images.</p>
+        <input
+          value={draftEmail}
+          onChange={(e) => setDraftEmail(e.target.value)}
+          type="email"
+          inputMode="email"
+          placeholder="your@email.com"
+        />
+        <button type="button" onClick={handleEmailSubmit} disabled={sendingEmail}>
+          <SendIcon />
+          {sendingEmail ? 'Sending…' : 'Send me the album'}
+        </button>
+        <div className="gallery-email-note">
+          <ClockIcon />
+          <p>
+            The album will be shared within <span>one week after the wedding</span>.
+          </p>
+        </div>
+      </div>
 
       {uploading && <p className="gallery-status">Uploading photo…</p>}
       {loading && <p className="gallery-status">Loading photos…</p>}
