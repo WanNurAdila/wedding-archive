@@ -1,17 +1,22 @@
+import { useState } from 'react'
 import { Divider, FlowerIcon, FooterMark, Wreath } from './decor'
 import { useCountdown } from '../useCountdown'
+import { getMapLinks, isIOS } from '../maps'
 import {
   COUPLE_NAME,
+  VENUE_ADDRESS_QUERY,
   VENUE_LOCATION,
-  VENUE_MAPS_URL,
   VENUE_NAME,
   WEDDING_DATE_LABEL,
   WEDDING_TARGET_ISO,
 } from '../wedding'
 
+const MAP_LINKS = getMapLinks(VENUE_ADDRESS_QUERY)
+
 export default function Details() {
   const cd = useCountdown(WEDDING_TARGET_ISO)
   const dayMode = cd.isPast
+  const [mapsMenuOpen, setMapsMenuOpen] = useState(false)
 
   return (
     <div className="details-page">
@@ -98,13 +103,52 @@ export default function Details() {
             </div>
           </div>
         </div>
-        <a href={VENUE_MAPS_URL} target="_blank" rel="noopener noreferrer" className="venue-cta">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-            <path d="M12 21s7-5.5 7-11a7 7 0 0 0-14 0c0 5.5 7 11 7 11Z" />
-            <circle cx="12" cy="10" r="2.5" />
-          </svg>
-          Open in Maps
-        </a>
+        <div className="venue-maps">
+          <button
+            type="button"
+            className="venue-cta"
+            onClick={() => setMapsMenuOpen((v) => !v)}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <path d="M12 21s7-5.5 7-11a7 7 0 0 0-14 0c0 5.5 7 11 7 11Z" />
+              <circle cx="12" cy="10" r="2.5" />
+            </svg>
+            Open in Maps
+          </button>
+          {mapsMenuOpen && (
+            <div className="venue-maps-menu">
+              <a
+                href={MAP_LINKS.waze}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="venue-maps-option"
+                onClick={() => setMapsMenuOpen(false)}
+              >
+                Open in Waze
+              </a>
+              <a
+                href={MAP_LINKS.google}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="venue-maps-option"
+                onClick={() => setMapsMenuOpen(false)}
+              >
+                Open in Google Maps
+              </a>
+              {isIOS() && (
+                <a
+                  href={MAP_LINKS.apple}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="venue-maps-option"
+                  onClick={() => setMapsMenuOpen(false)}
+                >
+                  Open in Apple Maps
+                </a>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <FooterMark />

@@ -7,6 +7,17 @@
   }
 }
 
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes toastIn {
   from {
     opacity: 0;
@@ -295,12 +306,17 @@
   color: var(--ink-faint);
 }
 
-.venue-cta {
+.venue-maps {
   margin-top: 18px;
+}
+
+.venue-cta {
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 8px;
+  border: none;
   text-decoration: none;
   background: var(--sage);
   color: var(--card);
@@ -309,6 +325,30 @@
   font-family: var(--serif);
   font-size: 15px;
   letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+.venue-maps-menu {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: popIn 0.2s ease both;
+}
+
+.venue-maps-option {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  background: transparent;
+  color: var(--sage);
+  border: 1px solid var(--sage-soft);
+  border-radius: 24px;
+  padding: 12px;
+  font-family: var(--serif);
+  font-size: 14px;
+  letter-spacing: 0.4px;
 }
 
 /* ---------- wishes page ---------- */
